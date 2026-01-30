@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pro-Grade Material & Waste Calculator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        #contractor-calc-wrapper {
+            --contractor-blue: #004aad;
+            --safety-orange: #ff6b00;
+            --text-dark: #2d3436;
+            --bg-light: #f9f9f9;
+            --white: #ffffff;
+            --shadow: 0 10px 25px rgba(0,0,0,0.08);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-dark);
+            line-height: 1.6;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 10px;
+        }
+        .calc-container {
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            border: 1px solid #eee;
+        }
+        .calc-header {
+            background: var(--contractor-blue);
+            color: var(--white);
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .calc-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .calc-header p {
+            margin: 10px 0 0;
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+        .calc-card {
+            padding: 25px;
+        }
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .full-width {
+            grid-column: span 2;
+        }
+        .input-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--contractor-blue);
+        }
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--safety-orange);
+        }
+        .btn-primary {
+            width: 100%;
+            background: var(--safety-orange);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+        .btn-primary:hover {
+            background: #e65f00;
+        }
+        #results-section {
+            padding: 25px;
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
+            display: none;
+        }
+        .room-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--contractor-blue);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .summary-box {
+            background: var(--contractor-blue);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .summary-item strong {
+            font-size: 1.4rem;
+        }
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .btn-secondary {
+            background: #eee;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        @media (max-width: 480px) {
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
+            .full-width {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="contractor-calc-wrapper">
+    <div class="calc-container">
+        <div class="calc-header">
+            <h2>Pro-Grade Material & Waste Calculator</h2>
+            <p>Calculate your project needs with professional precision.</p>
+        </div>
+        <div class="calc-card">
+            <div class="input-grid">
+                <div class="input-group full-width">
+                    <label>Room / Area Name</label>
+                    <input type="text" id="room-name" placeholder="e.g., Master Bedroom">
+                </div>
+                <div class="input-group">
+                    <label>Length (Feet)</label>
+                    <input type="number" id="length-ft" min="0">
+                </div>
+                <div class="input-group">
+                    <label>Length (Inches)</label>
+                    <input type="number" id="length-in" min="0" max="11">
+                </div>
+                <div class="input-group">
+                    <label>Width (Feet)</label>
+                    <input type="number" id="width-ft" min="0">
+                </div>
+                <div class="input-group">
+                    <label>Width (Inches)</label>
+                    <input type="number" id="width-in" min="0" max="11">
+                </div>
+                <div class="input-group full-width">
+                    <label>Material Type</label>
+                    <select id="material-type" onchange="toggleMaterialFields()">
+                        <option value="hardwood">Hardwood / Laminate (Sq Ft)</option>
+                        <option value="tile">Tile (Custom Size)</option>
+                        <option value="paint">Paint (2 Coats - Gallons)</option>
+                        <option value="decking">Decking (5.5&quot; Linear Ft)</option>
+                    </select>
+                </div>
+                <div id="tile-fields" class="input-group full-width" style="display:none;">
+                    <label>Tile Size (Inches)</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="number" id="tile-l" value="12">
+                        <input type="number" id="tile-w" value="12">
+                    </div>
+                </div>
+                <div id="layout-pattern-field" class="input-group full-width">
+                    <label>Layout Pattern</label>
+                    <select id="waste-pattern">
+                        <option value="0.10">Straight (+10%)</option>
+                        <option value="0.12">Offset (+12%)</option>
+                        <option value="0.20">Diagonal (+20%)</option>
+                        <option value="0.25">Complex (+25%)</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn-primary" onclick="addRoom()">Add Room to Estimate</button>
+        </div>
+        <div id="results-section">
+            <h3>Project Summary</h3>
+            <div id="room-list"></div>
+            <div class="summary-box">
+                <div class="summary-item">
+                    <span>Total Area</span>
+                    <strong id="total-project-sqft">0</strong>
+                </div>
+                <div class="summary-item">
+                    <span>Total Material</span>
+                    <strong id="grand-total-material">0</strong>
+                    <span id="unit-label"></span>
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button class="btn-secondary" onclick="copyResults()">Copy Results</button>
+                <button class="btn-outline" onclick="resetCalc()">Clear All</button>
+            </div>
+        </div>
+    </div>
+    <footer style="text-align: center; padding: 10px; font-size: 0.8rem; margin-top: 20px;">
+        <p>Built by <a href="https://finecraftcontractors.com/" target="_blank">FineCraft Contractors</a> – Expert home remodeling services in DC, VA, MD, DE, and FL.</p>
+    </footer>
+</div>
+<script>
+let roomData = [];
+function toggleMaterialFields() {
+    const material = document.getElementById('material-type').value;
+    document.getElementById('tile-fields').style.display =
+        material === 'tile' ? 'block' : 'none';
+    document.getElementById('layout-pattern-field').style.display =
+        material === 'paint' ? 'none' : 'block';
+}
+function addRoom() {
+    const name = document.getElementById('room-name').value || 'Unnamed Room';
+    const lFt = parseFloat(document.getElementById('length-ft').value) || 0;
+    const lIn = parseFloat(document.getElementById('length-in').value) || 0;
+    const wFt = parseFloat(document.getElementById('width-ft').value) || 0;
+    const wIn = parseFloat(document.getElementById('width-in').value) || 0;
+    const length = lFt + lIn / 12;
+    const width = wFt + wIn / 12;
+    const area = length * width;
+    if (area <= 0) {
+        alert('Please enter valid dimensions.');
+        return;
+    }
+    const material = document.getElementById('material-type').value;
+    const waste = parseFloat(document.getElementById('waste-pattern').value);
+    let qty = 0;
+    let unit = '';
+    if (material === 'paint') {
+        qty = (area * 2 / 350) * 1.1;
+        unit = 'Gallons';
+    } else if (material === 'decking') {
+        qty = area * (12 / 5.5) * (1 + waste);
+        unit = 'Linear Ft';
+    } else if (material === 'tile') {
+        const tL = parseFloat(document.getElementById('tile-l').value) || 12;
+        const tW = parseFloat(document.getElementById('tile-w').value) || 12;
+        const tileArea = (tL * tW) / 144;
+        qty = (area / tileArea) * (1 + waste);
+        unit = 'Tiles';
+    } else {
+        qty = area * (1 + waste);
+        unit = 'Sq Ft';
+    }
+    roomData.push({
+        name,
+        area: area.toFixed(2),
+        qty: qty,
+        unit
+    });
+    renderRooms();
+    document.getElementById('room-name').value = '';
+}
+function renderRooms() {
+    const list = document.getElementById('room-list');
+    const results = document.getElementById('results-section');
+    list.innerHTML = '';
+    if (!roomData.length) {
+        results.style.display = 'none';
+        return;
+    }
+    results.style.display = 'block';
+    let totalArea = 0;
+    let totalQty = 0;
+    roomData.forEach((r, i) => {
+        totalArea += parseFloat(r.area);
+        totalQty += r.qty;
+        list.innerHTML += `
+            <div class="room-item">
+                <div>
+                    <strong>${r.name}</strong><br>
+                    <small>${r.area} Sq Ft • ${r.qty.toFixed(2)} ${r.unit}</small>
+                </div>
+                <button onclick="removeRoom(${i})"
+                    style="background:none;border:none;color:#e74c3c;font-size:1.2rem;cursor:pointer;">
+                    &times;
+                </button>
+            </div>
+        `;
+    });
+    document.getElementById('total-project-sqft').innerText = totalArea.toFixed(2);
+    document.getElementById('grand-total-material').innerText = totalQty.toFixed(2);
+    document.getElementById('unit-label').innerText = roomData[0].unit;
+}
+function removeRoom(index) {
+    roomData.splice(index, 1);
+    renderRooms();
+}
+function resetCalc() {
+    roomData = [];
+    renderRooms();
+}
+function copyResults() {
+    let text = 'PROJECT MATERIAL ESTIMATE\n\n';
+    roomData.forEach(r => {
+        text += `${r.name}: ${r.area} Sq Ft – ${r.qty.toFixed(2)} ${r.unit}\n`;
+    });
+    navigator.clipboard.writeText(text);
+    alert('Results copied to clipboard!');
+}
+</script>
+</body>
+</html>
